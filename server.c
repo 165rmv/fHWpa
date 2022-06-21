@@ -21,13 +21,41 @@ void serve(int s) {
     char buffer[MSGSIZE];
     int size, i=0;
     struct stat buf;
+    //breakers
+    const char brkrSpace[2] = " ";
+    const char brkrDot[2] = ".";
 
     FILE *sin = fdopen(s, "r");
     FILE *sout = fdopen(s, "w");
+	
+    //Token
+	char *tSpace;
+	char *tDot;
+	
+	//route & type
+	char rteType[200],rte[200],ty[50];
 
     // Reads the request from the client
     while( fgets(buffer, MSGSIZE, sin) != NULL ) {
-        printf("%d - [%s]\n", ++i, buffer);
+        printf("%d - [%s]\n", ++i, buffer);      
+      if(i == 1){
+        	int idx = 1;
+        	//Parse 
+        	tSpace = strtok(buffer, brkrSpace);
+        	while (tSpace != NULL){
+        		if (idx == 2){
+        			strcpy(rteType, tSpace+1);
+        			strcpy(rte, tSpace+1);
+				}
+			idx++;
+        		tSpace = strtok(NULL,brkrSpace);
+			}
+			tDot = strtok(rteType, brkrDot);
+			while (tDot != NULL){
+				strcpy(ty, tDot);
+				tDot = strtok(NULL, brkrDot);
+			}	
+		}
         // A blank line is found -> end of headers
         if(buffer[0] == '\r' && buffer[1] == '\n') {
             break;
@@ -42,7 +70,7 @@ void serve(int s) {
     sprintf(buffer, "Date: Fri, 31 Dec 1999 23:59:59 GMT\r\n");
     fputs(buffer, sout);
 
-    sprintf(buffer, "Content-Type: image/png\r\n");
+    sprintf(buffer, "Content-Type: index/html\r\n");
     fputs(buffer, sout);
 
     stat(FILE_TO_SEND, &buf);
@@ -87,7 +115,7 @@ int main() {
     addrlen = sizeof(pin);
     // 4. Esperar conexion
     while( (sdo = accept(sd, (struct sockaddr *)  &pin, &addrlen)) > 0) {
-        //if(!fork()) {
+        if(!fork()) {
             printf("Connected from %s\n", inet_ntoa(pin.sin_addr));
             printf("Port %d\n", ntohs(pin.sin_port));
 
@@ -95,7 +123,7 @@ int main() {
 
             close(sdo);
             exit(0);
-        //}
+        }
     }
     close(sd);
 
